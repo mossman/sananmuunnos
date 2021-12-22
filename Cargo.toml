@@ -1,0 +1,16 @@
+[package]
+name = "sananmuunnos"
+version = "0.1.0"
+authors = ["Antti Häyrynen <antti.hayrynen@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+xml-rs = "0.8"
+unicode-segmentation = "1.8.0"
+array_tool = "0.2.6"
+clap = "2.34.0"
+rocket = "0.5.0-rc.1"
+
+
