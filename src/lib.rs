@@ -94,7 +94,7 @@ fn suffix_candidates<'a>(
     matches
 }
 
-pub fn transformations(
+pub fn spoonerism(
     dirty: &str,
     prefixmap: &HashMap<String, Vec<String>>,
     suffixmap: &HashMap<String, Vec<String>>,

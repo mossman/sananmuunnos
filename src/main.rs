@@ -3,7 +3,7 @@ extern crate clap;
 use clap::{Arg, App};
 
 mod lib;
-use lib::{read_kotus_xml, transformations};
+use lib::{read_kotus_xml, spoonerism};
 
 fn main() {
     let matches = App::new("sananmuunnos")
@@ -25,6 +25,6 @@ fn main() {
         let word  = matches.value_of("WORD").unwrap();
     
         let (prefixmap, suffixmap) = read_kotus_xml("sanat.xml");
-        transformations(word, &prefixmap, &suffixmap);
+        spoonerism(word, &prefixmap, &suffixmap);
     }
 }
