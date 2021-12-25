@@ -3,9 +3,13 @@ extern crate clap;
 use clap::{Arg, App};
 
 mod lib;
-use lib::{read_kotus_xml, spoonerism};
+//mod webapp;
 
-fn main() {
+use lib::{SpoonMaps};
+//use webapp::{spawn};
+
+#[async_std::main]
+async fn main() {
     let matches = App::new("sananmuunnos")
         .version("0.1")
         .author("antti.hayrynen@gmail.com")
@@ -21,10 +25,25 @@ fn main() {
             .index(1))
         .get_matches();
     
+
+//    if let Some(port) = matches.value_of("listen") {
+//       let port: u16 = port.parse().unwrap_or_else(|error| {
+//            panic!("Unable to parse port: {:?}", error);
+//        });
+//        let spoonmaps = SpoonMaps::from_kotus_xml("sanat.xml");
+
+//        spawn(port, &prefixmap, &suffixmap).await;
+//    }
+
     if matches.is_present("WORD") {
         let word  = matches.value_of("WORD").unwrap();
     
-        let (prefixmap, suffixmap) = read_kotus_xml("sanat.xml");
-        spoonerism(word, &prefixmap, &suffixmap);
+        let spoonmaps = SpoonMaps::from_kotus_xml("sanat.xml");
+        for wordresult in spoonmaps.spoonerism(word).iter() {
+            println!("{}", wordresult.rootword);
+            for ending in wordresult.endings.iter() {
+                println!("      {}", ending);
+            }
+        };
     }
 }

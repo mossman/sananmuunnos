@@ -11,6 +11,21 @@ xml-rs = "0.8"
 unicode-segmentation = "1.8.0"
 array_tool = "0.2.6"
 clap = "2.34.0"
-rocket = "0.5.0-rc.1"
+serde = "1.0.132"
 
+[dependencies.rocket]
+version = "0.5.0-rc.1"
+features = ["json"]
+
+[dependencies.async-std]
+version = "1.6"
+features = ["attributes", "tokio1"]
+
+[[bin]]
+name = "sananmuunnos"
+path = "src/main.rs"
+
+[[bin]]
+name = "sananmuunnos-webapp"
+path = "src/webapp.rs"
 

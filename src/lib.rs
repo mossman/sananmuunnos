@@ -8,6 +8,7 @@ use std::hash::{Hash, Hasher};
 use array_tool::vec::Intersect;
 use unicode_segmentation::UnicodeSegmentation;
 use xml::reader::{EventReader, XmlEvent};
+use serde::Serialize;
 
 const VOWELS: &'static [&'static str] = &["a", "e", "i", "o", "u", "y", "å", "ä", "ö"];
 
@@ -94,131 +95,159 @@ fn suffix_candidates<'a>(
     matches
 }
 
-pub fn spoonerism(
-    dirty: &str,
-    prefixmap: &HashMap<String, Vec<String>>,
-    suffixmap: &HashMap<String, Vec<String>>,
-) {
-    let (dirty_prefix, dirty_suffix, double_vowel) = split_word(dirty);
-
-    let dirty_suffix_candidates = suffix_candidates(&dirty_prefix, &prefixmap);
-
-    for prefix in prefix_candidates(&dirty_suffix, &suffixmap, double_vowel) {
-        if &format!("{}{}", prefix, dirty_suffix) == dirty {
-            continue;
-        }
-        println!("{}{}", prefix, dirty_suffix);
-        let candidates = suffix_candidates(&prefix, &prefixmap);
-
-        for suffix in dirty_suffix_candidates.intersect(candidates) {
-            if &format!("{}{}", dirty_prefix, suffix) == dirty {
-                continue;
-            }
-            println!("   {}{}", dirty_prefix, suffix);
-        }
-
-        if double_vowel && check_double_vowel(prefix) {
-            let new_lookup = prefix
-                .graphemes(true)
-                .collect::<Vec<&str>>()
-                .split_last()
-                .unwrap()
-                .1
-                .join("");
-
-            let candidates = suffix_candidates(&new_lookup, &prefixmap);
-
-            let short_prefix = dirty_prefix
-                .graphemes(true)
-                .collect::<Vec<&str>>()
-                .split_last()
-                .unwrap()
-                .1
-                .join("");
-            let short_suffix_candidates = suffix_candidates(&short_prefix, &prefixmap);
-
-            for suffix in short_suffix_candidates.intersect(candidates) {
-                if &format!("{}{}", short_prefix, suffix) == dirty {
-                    continue;
-                }
-                println!("   {}{}", short_prefix, suffix);
-            }
-        } else if !double_vowel {
-            let new_lookup = format!("{}{}", prefix, prefix.graphemes(true).last().unwrap());
-
-            let candidates = suffix_candidates(&new_lookup, &prefixmap);
-
-            let long_prefix = format!(
-                "{}{}",
-                dirty_prefix,
-                dirty_prefix.graphemes(true).last().unwrap()
-            );
-            let long_suffix_candidates = suffix_candidates(&long_prefix, &prefixmap);
-
-            for suffix in long_suffix_candidates.intersect(candidates) {
-                if &format!("{}{}", long_prefix, suffix) == dirty {
-                    continue;
-                }
-                println!("   {}{}", long_prefix, suffix);
-            }
-        }
-    }
-}
-
 fn hash<T: Hash>(t: &T) -> u64 {
     let mut s = DefaultHasher::new();
     t.hash(&mut s);
     s.finish()
 }
 
-pub fn read_kotus_xml(filename: &str) -> (HashMap<String, Vec<String>>, HashMap<String, Vec<String>>) {
-    let mut prefixmap: HashMap<String, Vec<String>> = HashMap::new();
-    let mut suffixmap: HashMap<String, Vec<String>> = HashMap::new();
+#[derive(Serialize)]
+pub struct SpoonMaps {
+    prefixmap: HashMap<String, Vec<String>>,
+    suffixmap: HashMap<String, Vec<String>>
+}
 
-    let file = match File::open(filename) {
-        Err(why) => panic!("Could not open file {}", why),
-        Ok(file) => file,
-    };
+#[derive(Serialize)]
+pub struct WordResult {
+    pub rootword: String,
+    pub endings: Vec<String>
+}
 
-    let file = BufReader::new(file);
-
-    let parser = EventReader::new(file);
-    let mut capture = false;
-    let mut prev = 0;
-
-    for e in parser {
-        match e {
-            Ok(XmlEvent::StartElement { name, .. }) => {
-                if name.local_name == "s" {
-                    capture = true;
+impl SpoonMaps {
+    pub fn from_kotus_xml(filename: &str) -> SpoonMaps {
+        let mut prefixmap: HashMap<String, Vec<String>> = HashMap::new();
+        let mut suffixmap: HashMap<String, Vec<String>> = HashMap::new();
+    
+        let file = match File::open(filename) {
+            Err(why) => panic!("Could not open file {}", why),
+            Ok(file) => file,
+        };
+    
+        let file = BufReader::new(file);
+    
+        let parser = EventReader::new(file);
+        let mut capture = false;
+        let mut prev = 0;
+    
+        for e in parser {
+            match e {
+                Ok(XmlEvent::StartElement { name, .. }) => {
+                    if name.local_name == "s" {
+                        capture = true;
+                    }
                 }
-            }
-            Ok(XmlEvent::EndElement { name, .. }) => {
-                if name.local_name == "s" {
-                    capture = false;
+                Ok(XmlEvent::EndElement { name, .. }) => {
+                    if name.local_name == "s" {
+                        capture = false;
+                    }
                 }
-            }
-            Ok(XmlEvent::Characters(text)) => {
-                // Avoid dupes
-                if prev == hash(&text) {
-                    continue;
+                Ok(XmlEvent::Characters(text)) => {
+                    // Avoid dupes
+                    if prev == hash(&text) {
+                        continue;
+                    }
+                    if capture {
+                        let (prefix, suffix, _double_vowel) = split_word(&text);
+                        suffixmap
+                            .entry(suffix.clone())
+                            .or_insert(Vec::new())
+                            .push(prefix.clone());
+                        prefixmap.entry(prefix).or_insert(Vec::new()).push(suffix);
+                        prev = hash(&text);
+                    }
                 }
-                if capture {
-                    let (prefix, suffix, _double_vowel) = split_word(&text);
-                    suffixmap
-                        .entry(suffix.clone())
-                        .or_insert(Vec::new())
-                        .push(prefix.clone());
-                    prefixmap.entry(prefix).or_insert(Vec::new()).push(suffix);
-                    prev = hash(&text);
+                Err(e) => {
+                    println!("Error: {}", e);
+                    break;
                 }
+                _ => {}
             }
-            Err(e) => {
-                println!("Error: {}", e);
-                break;
-            }
-            _ => {}
+        }
+        SpoonMaps {
+            prefixmap: prefixmap,
+            suffixmap: suffixmap
         }
     }
-    (prefixmap, suffixmap)
+
+    pub fn spoonerism(
+        &self,
+        dirty: &str,
+    ) -> Vec<WordResult> {
+        let (dirty_prefix, dirty_suffix, double_vowel) = split_word(dirty);
+    
+        let dirty_suffix_candidates = suffix_candidates(&dirty_prefix, &self.prefixmap);
+    
+        let mut results = Vec::new();
+
+        for prefix in prefix_candidates(&dirty_suffix, &self.suffixmap, double_vowel) {
+            if &format!("{}{}", prefix, dirty_suffix) == dirty {
+                continue;
+            }
+
+            let mut wordresult = WordResult {
+                rootword: format!("{}{}", prefix, dirty_suffix),
+                endings: Vec::new()
+            };
+
+            let candidates = suffix_candidates(&prefix, &self.prefixmap);
+    
+            for suffix in dirty_suffix_candidates.intersect(candidates) {
+                if &format!("{}{}", dirty_prefix, suffix) == dirty {
+                    continue;
+                }
+                wordresult.endings.push(format!("{}{}", dirty_prefix, suffix));
+            }
+    
+            if double_vowel && check_double_vowel(prefix) {
+                let new_lookup = prefix
+                    .graphemes(true)
+                    .collect::<Vec<&str>>()
+                    .split_last()
+                    .unwrap()
+                    .1
+                    .join("");
+    
+                let candidates = suffix_candidates(&new_lookup, &self.prefixmap);
+    
+                let short_prefix = dirty_prefix
+                    .graphemes(true)
+                    .collect::<Vec<&str>>()
+                    .split_last()
+                    .unwrap()
+                    .1
+                    .join("");
+                let short_suffix_candidates = suffix_candidates(&short_prefix, &self.prefixmap);
+    
+                for suffix in short_suffix_candidates.intersect(candidates) {
+                    if &format!("{}{}", short_prefix, suffix) == dirty {
+                        continue;
+                    }
+                    wordresult.endings.push(format!("{}{}", short_prefix, suffix));
+                }
+            } else if !double_vowel {
+                let new_lookup = format!("{}{}", prefix, prefix.graphemes(true).last().unwrap());
+    
+                let candidates = suffix_candidates(&new_lookup, &self.prefixmap);
+    
+                let long_prefix = format!(
+                    "{}{}",
+                    dirty_prefix,
+                    dirty_prefix.graphemes(true).last().unwrap()
+                );
+                let long_suffix_candidates = suffix_candidates(&long_prefix, &self.prefixmap);
+    
+                for suffix in long_suffix_candidates.intersect(candidates) {
+                    if &format!("{}{}", long_prefix, suffix) == dirty {
+                        continue;
+                    }
+                    wordresult.endings.push(format!("{}{}", long_prefix, suffix));
+                }
+            }
+            if wordresult.endings.len() > 0 {
+                results.push(wordresult)
+            }
+        }
+        results
+    }
+    
 }
