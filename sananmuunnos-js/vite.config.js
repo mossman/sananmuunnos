@@ -11,5 +11,6 @@ export default defineConfig({
       },
     },
   },
-  plugins: [svelte()]
+  plugins: [svelte()],
+  base: "static/"
 })
