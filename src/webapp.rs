@@ -10,7 +10,7 @@ struct MyConfig {
     spoonmaps: SpoonMaps
 }
 
-#[get("/word/<word>")]
+#[get("/api/word/<word>")]
 fn word(word: &str, state: &State<MyConfig>) -> Json<Vec<WordResult>> {
     let results = state.spoonmaps.spoonerism(word);
     Json(results)
