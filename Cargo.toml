@@ -4,14 +4,16 @@ version = "0.1.0"
 authors = ["Antti Häyrynen <antti.hayrynen@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 xml-rs = "0.8"
 unicode-segmentation = "1.8.0"
 array_tool = "0.2.6"
 clap = "2.34.0"
 serde = "1.0.132"
+rand = "0.8.4"
+chrono = { version = "0.4", features = ["serde"] }
+diesel = { version = "1.4.4", features = ["postgres", "chrono"] }
+dotenv = "0.15.0"
 
 [dependencies.rocket]
 version = "0.5.0-rc.1"
@@ -20,6 +22,11 @@ features = ["json"]
 [dependencies.async-std]
 version = "1.6"
 features = ["attributes", "tokio1"]
+
+[dependencies.rocket_sync_db_pools]
+version = "0.1.0-rc.1"
+default-features = false
+features = ["diesel_postgres_pool"]
 
 [[bin]]
 name = "sananmuunnos"

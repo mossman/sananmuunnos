@@ -1,12 +1,8 @@
 extern crate clap;
 
 use clap::{Arg, App};
+use sananmuunnos::SpoonMaps;
 
-mod lib;
-//mod webapp;
-
-use lib::{SpoonMaps};
-//use webapp::{spawn};
 
 #[async_std::main]
 async fn main() {

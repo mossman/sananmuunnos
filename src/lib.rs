@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate diesel;
+
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
@@ -9,6 +12,10 @@ use array_tool::vec::Intersect;
 use unicode_segmentation::UnicodeSegmentation;
 use xml::reader::{EventReader, XmlEvent};
 use serde::Serialize;
+
+pub mod models;
+pub mod schema;
+
 
 const VOWELS: &'static [&'static str] = &["a", "e", "i", "o", "u", "y", "å", "ä", "ö"];
 
@@ -250,4 +257,13 @@ impl SpoonMaps {
         results
     }
     
+    pub fn check(&self, first: &str, second: &str) -> bool {
+        // Simple check for now
+        let (first_prefix, first_suffix, _) = split_word(&first.to_lowercase());
+        let (second_prefix, second_suffix, _) = split_word(&second.to_lowercase());
+        self.prefixmap.contains_key(&first_prefix) && 
+            self.prefixmap.contains_key(&second_prefix) &&
+            self.suffixmap.contains_key(&first_suffix) && 
+            self.suffixmap.contains_key(&second_suffix)
+    }
 }
