@@ -11,7 +11,8 @@ COPY sananmuunnos-js .
 RUN npm install; npm run build
 
 
-FROM gcr.io/distroless/cc-debian11
+FROM debian:bullseye-slim
+RUN apt-get -y update; apt-get install -y libpq5
 COPY --from=build /usr/local/cargo/bin/sananmuunnos-webapp /sananmuunnos-webapp
 COPY --from=buildjs /usr/src/sananmuunnos/sananmuunnos-js/dist /static
 COPY --from=build /usr/src/sananmuunnos/Rocket.toml /
