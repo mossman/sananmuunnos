@@ -3,6 +3,7 @@
   let word = '';
 
   let promise = Promise.resolve([]);
+  let top_promise = Promise.resolve([]);
 
   async function fetchItems() {
     const response = await fetch("/api/word/"+word);
@@ -16,6 +17,23 @@
 
   const getItems = () => {
     promise = fetchItems();
+    top_promise = Promise.resolve([]);
+  }
+
+  async function fetchTopItems() {
+    const response = await fetch("/api/likes");
+
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error(items);
+    }
+  }
+
+  const getTopItems = () => {
+    top_promise = fetchTopItems();
+    promise = Promise.resolve([]);
+
   }
 
   async function like(first, second) {
@@ -43,7 +61,8 @@
     
         <div class="menu w-full lg:block flex-grow lg:flex lg:items-center lg:w-auto lg:px-3 px-8">
             <div class="text-md font-bold text-blue-700 lg:flex-grow">
-                <a href="#responsive-header"
+                <a href="#"
+                   on:click|preventDefault={getTopItems}
                    class="block mt-4 lg:inline-block lg:mt-0 hover:text-white px-4 py-2 rounded hover:bg-blue-700 mr-2">
                     Parhaat
                 </a>
@@ -121,8 +140,28 @@
                       {:catch error}
                         <p>{error.message}</p>
                       {/await}
-                    
-                      </tbody>
+                      {#await top_promise}
+                      <p>Ruksuti ruksuti...</p>
+                      {:then items}
+                      {#each items as item}
+                      <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <td class="py-4 px-6 text-sm font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {item.first}
+                        </td>
+                        <td class="py-4 px-6 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">
+                          {item.second}
+                        </td>
+                        <td class="py-4 px-6 text-sm font-medium text-right whitespace-nowrap">
+                          {item.count}
+                        </td>
+                      </tr>
+                      {/each}
+                    {:catch error}
+                      <p>{error.message}</p>
+                    {/await}
+
+
+                    </tbody>
                   </table>
               </div>
           </div>
