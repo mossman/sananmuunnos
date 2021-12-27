@@ -9,7 +9,7 @@ use rocket::http::{Cookie};
 use rocket::response::{Debug, status::Created};
 use rocket::outcome::Outcome::Success;
 use rocket::response::status::NotFound;
-use sananmuunnos::schema::likes;
+use sananmuunnos::schema::{likes,likes_count};
 use chrono::Utc;
 use std::env;
 
@@ -19,7 +19,7 @@ use rocket_sync_db_pools::{diesel,database};
 use rocket_sync_db_pools::diesel::RunQueryDsl;
 use async_std::path::Path;
 
-use sananmuunnos::models::{LikeModel};
+use sananmuunnos::models::{LikeModel, LikesCount};
 
 type Result<T, E = Debug<diesel::result::Error>> = std::result::Result<T, E>;
 
@@ -64,6 +64,16 @@ impl<'r> FromRequest<'r> for Session {
     
         Success(Session(session))
     }
+}
+
+#[get("/likes")]
+async fn likes_api(db: MyDatabase) -> Result<Json<Vec<LikesCount>>> {
+    let items: Vec<LikesCount> = db.run(move |conn| {
+        likes_count::table
+            .load(conn)
+    }).await?;
+
+    Ok(Json(items))
 }
 
 #[post("/like", format="application/json", data="<input>")]
@@ -112,7 +122,7 @@ fn rocket() -> _ {
     let state = MyConfig { spoonmaps: spoonmaps };
 
     rocket::build()
-        .mount("/api", routes![word, like])
+        .mount("/api", routes![word, like, likes_api])
         .mount("/static", FileServer::from(env::var("STATIC_DIR").unwrap()))
         .mount("/", routes![root])
         .manage(state)
