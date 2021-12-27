@@ -105,7 +105,7 @@
                                   Sana 2
                               </th>
                               <th scope="col" class="relative py-3 px-6">
-                                  <span class="sr-only">Peukuta</span>
+                                  <span class="sr-only">Peukukset</span>
                               </th>
                           </tr>
                       </thead>
@@ -131,7 +131,7 @@
                                 {ending}
                             </td>
                             <td class="py-4 px-6 text-sm font-medium text-right whitespace-nowrap">
-                                <a href="#" on:click|preventDefault={like(item.rootword, ending)} class="text-blue-600 hover:text-blue-900 dark:text-blue-500 dark:hover:underline">Peukkua</a>
+                                <a href="#" on:click|preventDefault={like(item.rootword, ending)} class="text-blue-600 hover:text-blue-900 dark:text-blue-500 dark:hover:underline">🍺</a>
                             </td>
                         </tr>
 
