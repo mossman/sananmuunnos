@@ -1,4 +1,6 @@
 <script lang="ts">
+import FirstWord from "./FirstWord.svelte";
+import SecondWord from "./SecondWord.svelte";
 
   let word = '';
 
@@ -36,19 +38,7 @@
 
   }
 
-  async function like(first, second) {
-    const res = await fetch("/api/like", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json"
-      },
-      body: JSON.stringify({
-        'first': first,
-        'second': second
-      })
-    })
-    const json = await res.json()
-  }
+
 </script>
 
 <main>
@@ -114,26 +104,9 @@
                         <p>Ruksuti ruksuti...</p>
                         {:then items}
                         {#each items as item}
-                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                          <td class="py-4 px-6 text-sm font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                              {item.rootword}
-                          </td>
-                          <td class="py-4 px-6 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">
-                          </td>
-                          <td class="py-4 px-6 text-sm font-medium text-right whitespace-nowrap">
-                          </td>
-                        </tr>
-                          {#each item.endings as ending}
-                          <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                            <td class="py-4 px-6 text-sm font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            </td>
-                            <td class="py-4 px-6 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">
-                                {ending}
-                            </td>
-                            <td class="py-4 px-6 text-sm font-medium text-right whitespace-nowrap">
-                                <a href="#" on:click|preventDefault={like(item.rootword, ending)} class="text-blue-600 hover:text-blue-900 dark:text-blue-500 dark:hover:underline">🍺</a>
-                            </td>
-                        </tr>
+                        <FirstWord word={item.rootword}/>
+                        {#each item.endings as ending}
+                        <SecondWord firstword={item.rootword} secondword={ending} liked={false}/>
 
                           {/each}
                         {/each}
