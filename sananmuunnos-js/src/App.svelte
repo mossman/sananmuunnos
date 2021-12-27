@@ -18,10 +18,19 @@
     promise = fetchItems();
   }
 
-  const onKeyPress = e => {
-    if (e.charCode === 13) getItems();
-  };
-
+  async function like(first, second) {
+    const res = await fetch("/api/like", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        'first': first,
+        'second': second
+      })
+    })
+    const json = await res.json()
+  }
 </script>
 
 <main>
@@ -103,7 +112,7 @@
                                 {ending}
                             </td>
                             <td class="py-4 px-6 text-sm font-medium text-right whitespace-nowrap">
-                                <a href="#" class="text-blue-600 hover:text-blue-900 dark:text-blue-500 dark:hover:underline">Peukkua</a>
+                                <a href="#" on:click|preventDefault={like(item.rootword, ending)} class="text-blue-600 hover:text-blue-900 dark:text-blue-500 dark:hover:underline">Peukkua</a>
                             </td>
                         </tr>
 
