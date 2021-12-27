@@ -180,7 +180,8 @@ impl SpoonMaps {
         &self,
         dirty: &str,
     ) -> Vec<WordResult> {
-        let (dirty_prefix, dirty_suffix, double_vowel) = split_word(&dirty.to_lowercase());
+        let dirty = &dirty.to_lowercase();
+        let (dirty_prefix, dirty_suffix, double_vowel) = split_word(&dirty);
     
         let dirty_suffix_candidates = suffix_candidates(&dirty_prefix, &self.prefixmap);
     
