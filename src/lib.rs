@@ -318,7 +318,8 @@ impl SpoonMaps {
             }
         }
         // Wonderful world of finnish phonetics
-        if let Some(altdirty) = altlookup(&dirty) {
+        if !altlookup(&dirty_suffix).is_none() {
+            let altdirty = altlookup(&dirty).unwrap();
             let (dirty_prefix, dirty_suffix, double_vowel) = split_word(&altdirty);
     
             let dirty_suffix_candidates = suffix_candidates(&dirty_prefix, &self.altprefixmap);
