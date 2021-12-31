@@ -107,7 +107,6 @@ import SecondWord from "./SecondWord.svelte";
                         <FirstWord word={item.rootword}/>
                         {#each item.endings as ending}
                         <SecondWord firstword={item.rootword} secondword={ending} liked={false}/>
-
                           {/each}
                         {/each}
                       {:catch error}
