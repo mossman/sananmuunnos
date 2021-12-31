@@ -8,7 +8,7 @@ use rocket::serde::{Deserialize, Serialize, json::Json};
 use rocket::http::{Cookie};
 use rocket::response::{Debug, status::Created};
 use rocket::outcome::Outcome::Success;
-use rocket::response::status::NotFound;
+use rocket::response::status::Conflict;
 use sananmuunnos::schema::{likes,likes_count};
 use chrono::Utc;
 use std::env;
@@ -82,11 +82,11 @@ async fn like(
     state: &State<MyConfig>, 
     db: MyDatabase,
     input: Json<Like>
-) -> Result<Created<Json<Like>>, NotFound<String>> {
+) -> Result<Created<Json<Like>>, Conflict<String>> {
 
     let valid = state.spoonmaps.check(&input.first, &input.second);
     if !valid {
-        Err(NotFound("No such thing".to_string()))
+        Err(Conflict(Some("No such thing".to_string())))
     } else {
         let new_input = input.clone();
         let timestamp = Utc::now().naive_utc();
@@ -101,7 +101,18 @@ async fn like(
             .values(new_like)
             .execute(conn)
         }).await;
-        Ok(Created::new("/").body(input))
+
+        match inserted {
+            Err(e) => {
+                Err(Conflict(Some(e.to_string())))
+            },
+            Ok(0) => {
+                Err(Conflict(Some("failed".to_string())))
+
+            },
+            _ => Ok(Created::new("/").body(input))
+
+        }
     }
 }
 

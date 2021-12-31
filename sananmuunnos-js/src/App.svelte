@@ -1,6 +1,8 @@
 <script lang="ts">
 import FirstWord from "./FirstWord.svelte";
 import SecondWord from "./SecondWord.svelte";
+import TopWord from "./TopWord.svelte";
+import { BarLoader } from 'svelte-loading-spinners';
 
   let word = '';
 
@@ -51,7 +53,7 @@ import SecondWord from "./SecondWord.svelte";
     
         <div class="menu w-full lg:block flex-grow lg:flex lg:items-center lg:w-auto lg:px-3 px-8">
             <div class="text-md font-bold text-blue-700 lg:flex-grow">
-                <a href="#"
+                <a href={"#"}
                    on:click|preventDefault={getTopItems}
                    class="block mt-4 lg:inline-block lg:mt-0 hover:text-white px-4 py-2 rounded hover:bg-blue-700 mr-2">
                     Parhaat
@@ -101,32 +103,22 @@ import SecondWord from "./SecondWord.svelte";
                       </thead>
                       <tbody>
                         {#await promise}
-                        <p>Ruksuti ruksuti...</p>
+                          <div class="content-center"><BarLoader size=60></BarLoader></div>
                         {:then items}
-                        {#each items as item}
+                          {#each items as item}
                         <FirstWord word={item.rootword}/>
                         {#each item.endings as ending}
-                        <SecondWord firstword={item.rootword} secondword={ending} liked={false}/>
+                        <SecondWord firstword={item.rootword} secondword={ending} failed={false} liked={false}/>
                           {/each}
                         {/each}
                       {:catch error}
                         <p>{error.message}</p>
                       {/await}
                       {#await top_promise}
-                      <p>Ruksuti ruksuti...</p>
+                      <div class="content-center"><BarLoader size=60></BarLoader></div>
                       {:then items}
                       {#each items as item}
-                      <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td class="py-4 px-6 text-sm font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {item.first}
-                        </td>
-                        <td class="py-4 px-6 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">
-                          {item.second}
-                        </td>
-                        <td class="py-4 px-6 text-sm font-medium text-right whitespace-nowrap">
-                          {item.count}
-                        </td>
-                      </tr>
+                      <TopWord firstword={item.first} secondword={item.second} count={item.count} liked={false} failed={false}/>
                       {/each}
                     {:catch error}
                       <p>{error.message}</p>

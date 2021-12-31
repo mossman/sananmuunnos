@@ -3,6 +3,7 @@
   export let firstword;
   export let liked;
   export let failed;
+  export let count;
 
   async function like() {
     const res = await fetch("/api/like", {
@@ -21,6 +22,7 @@
       try {
         const json = response.json();
         liked = true;
+        count += 1;
       } catch (e) {
         failed = true;
       } 
@@ -31,20 +33,22 @@
 
 </script>
 
-<tr class="bg-white border-b ">
+<tr class="bg-white border-b">
   <td class="py-4 px-6 text-sm font-medium text-gray-900 whitespace-nowrap">
+      {firstword}
   </td>
   <td class="py-4 px-6 text-sm text-gray-500 whitespace-nowrap">
-      {secondword}
+    {secondword}
   </td>
   <td class="py-4 px-6 text-sm font-medium text-right whitespace-nowrap">
-  {#if liked}
-  💪
-  {:else if failed}
-  💩
-  {:else}
-  <a href={"#"} on:click|preventDefault={like} class="text-blue-600 hover:text-blue-900">🍺</a>
-  {/if}
+    {count}
+    {#if liked}
+    💪
+    {:else if failed}
+    💩
+    {:else}
+    <a href={"#"} on:click|preventDefault={like} class="text-blue-600 hover:text-blue-900">🍺</a>
+    {/if}
   </td>
 </tr>
 
