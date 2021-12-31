@@ -83,25 +83,6 @@ fn check_double_vowel(prefix: &str) -> bool {
     return same;
 }
 
-fn prefixes<'a>(
-    suffix: &str,
-    hashmap: &'a HashMap<String, Vec<String>>,
-    double_vowel: bool,
-) -> Vec<&'a String> {
-    let mut matches: Vec<&String> = Vec::new();
-
-    if hashmap.contains_key(suffix) {
-        for prefix in hashmap.get(suffix).unwrap().iter() {
-            let has_double_vowel = check_double_vowel(prefix);
-            if double_vowel && has_double_vowel {
-                matches.push(prefix);
-            } else if !double_vowel && !has_double_vowel {
-                matches.push(prefix);
-            }
-        }
-    }
-    matches
-}
 
 fn altlookup(word: &str) -> Option<String> {
     let mut altlookup = String::new();
@@ -130,16 +111,16 @@ fn prefix_candidates<'a>(
 ) -> Vec<&'a String> {
 
     let mut matches: Vec<&String> = Vec::new();
-
-    let basics = prefixes(&suffix, &hashmap, double_vowel);
-    matches.extend(basics);
-//    let altword = altlookup(&suffix);
-//    match altword {
-//        Some(altword) => {
-//            matches.extend(prefixes(&altword, &hashmap, double_vowel));
-//        },
-//        None => (),
-//    }
+    if hashmap.contains_key(suffix) {
+        for prefix in hashmap.get(suffix).unwrap().iter() {
+            let has_double_vowel = check_double_vowel(prefix);
+            if double_vowel && has_double_vowel {
+                matches.push(prefix);
+            } else if !double_vowel && !has_double_vowel {
+                matches.push(prefix);
+            }
+        }
+    }
     matches
 }
 
@@ -223,7 +204,7 @@ impl SpoonMaps {
                             Some(altsuffix) => {
                                 altprefixmap.entry(prefix.clone()).or_insert(Vec::new()).push(altsuffix);
                             },
-                            None => (),
+                            None => altprefixmap.entry(prefix.clone()).or_insert(Vec::new()).push(suffix.clone()),
                         }    
                         prefixmap.entry(prefix).or_insert(Vec::new()).push(suffix);
 
@@ -270,11 +251,9 @@ impl SpoonMaps {
             dirty: &str) -> Vec<String> {
                 let mut res = Vec::new();
                 let candidates = suffix_candidates(&prefix, &self.prefixmap);
-               // println!("cand {:#?}", candidates);
         
                 for suffix in dirty_suffix_candidates.intersect(candidates) {
-                 //   println!("Suffix {}", suffix);
-                    // Switch suffix to alt form
+                    // Switch suffix to alt form if needed
                     let new_suffix = altlookup(&suffix);
                     match new_suffix {
                         Some(a) => {
@@ -283,7 +262,9 @@ impl SpoonMaps {
                             }
                             res.push(format!("{}{}", dirty_prefix, a));
                         },
-                        _ => ()
+                        _ => {
+                            res.push(format!("{}{}", dirty_prefix, suffix));
+                        }
                     }
                 }
                 res
@@ -342,9 +323,6 @@ impl SpoonMaps {
     
             let dirty_suffix_candidates = suffix_candidates(&dirty_prefix, &self.altprefixmap);
         
-            let short_prefix = squeeze(&dirty_prefix);
-            let long_prefix = stretch(&dirty_prefix);
-    
             for prefix in prefix_candidates(&dirty_suffix, &self.suffixmap, double_vowel) {
                 let mut wordresult = WordResult {
                     rootword: format!("{}{}", prefix, dirty_suffix),
@@ -358,7 +336,7 @@ impl SpoonMaps {
                 }
         
             }
-    
+            // Todo long tail. ää öö things.
         }
         results
     }
