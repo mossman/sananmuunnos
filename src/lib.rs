@@ -318,7 +318,7 @@ impl SpoonMaps {
             }
         }
         // Wonderful world of finnish phonetics
-        if !altlookup(&dirty_suffix).is_none() {
+        if !altlookup(&dirty_suffix).is_none() && altlookup(&dirty_prefix).is_none() {
             let altdirty = altlookup(&dirty).unwrap();
             let (dirty_prefix, dirty_suffix, double_vowel) = split_word(&altdirty);
     
@@ -346,8 +346,8 @@ impl SpoonMaps {
         // Simple check for now
         let (first_prefix, first_suffix, _) = split_word(&first.to_lowercase());
         let (second_prefix, second_suffix, _) = split_word(&second.to_lowercase());
-        self.prefixmap.contains_key(&first_prefix) && 
-            self.prefixmap.contains_key(&second_prefix) &&
+        (self.prefixmap.contains_key(&first_prefix) || self.altprefixmap.contains_key(&first_prefix)) && 
+            (self.prefixmap.contains_key(&second_prefix) || self.altprefixmap.contains_key(&second_prefix)) &&
             self.suffixmap.contains_key(&first_suffix) && 
             self.suffixmap.contains_key(&second_suffix)
     }
