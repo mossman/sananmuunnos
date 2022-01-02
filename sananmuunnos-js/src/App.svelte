@@ -89,7 +89,7 @@ import { BarLoader } from 'svelte-loading-spinners';
           <div class="inline-block py-2 min-w-full">
               <div class="overflow-hidden shadow-md sm:rounded-lg">
                   <table class="min-w-full">
-                      <thead class="bg-gray-50 dark:bg-gray-700">
+                      <thead class="bg-gray-50">
                           <tr>
                               <th scope="col" class="py-3 px-6 text-xs font-medium tracking-wider text-left text-gray-700 uppercase">
                                   Sana 1
