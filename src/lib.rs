@@ -39,17 +39,17 @@ fn split_word(s: &str) -> (String, String, bool) {
     let mut state = 0;
     let mut double_vowel = false;
 
-    for grapheme in s.graphemes(true).collect::<Vec<&str>>().iter() {
+    for grapheme in s.graphemes(true) {
         if state == 0 {
             // skip "-" at start
-            if let &"-" = &*grapheme {
+            if let &"-" = &grapheme {
                 continue;
             }
             prefix.push_str(&grapheme);
             state = 1;
         } else if state == 1 {
             if VOWELS.contains(&prev) {
-                if &prev == grapheme {
+                if prev == grapheme {
                     double_vowel = true;
                     prefix.push_str(&grapheme);
                 } else {
@@ -70,10 +70,9 @@ fn split_word(s: &str) -> (String, String, bool) {
 fn check_double_vowel(prefix: &str) -> bool {
     let mut prev: &str = "";
     let mut same: bool = false;
-    let graphemes = prefix.graphemes(true).collect::<Vec<&str>>();
 
-    for grapheme in graphemes.iter() {
-        if grapheme == &prev {
+    for grapheme in prefix.graphemes(true) {
+        if grapheme == prev {
             same = true;
         } else {
             same = false;
@@ -87,12 +86,12 @@ fn check_double_vowel(prefix: &str) -> bool {
 fn altlookup(word: &str) -> Option<String> {
     let mut altlookup = String::new();
 
-    for grapheme in word.graphemes(true).collect::<Vec<&str>>().iter() {
+    for grapheme in word.graphemes(true) {
         let translated = match grapheme {
-            &"ä" => &"a",
-            &"ö" => &"o",
-            &"a" => &"ä",
-            &"o" => &"ö",
+            "ä" => &"a",
+            "ö" => &"o",
+            "a" => &"ä",
+            "o" => &"ö",
             _ => grapheme
         };
         altlookup.push_str(&translated);
