@@ -4,6 +4,7 @@ extern crate diesel;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
+use std::io::BufRead;
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -153,7 +154,59 @@ fn stretch(word: &str) -> String {
     format!("{}{}", word, word.graphemes(true).last().unwrap())
 }
 
+fn add_word_to_maps(
+    word: &str, 
+    prefixmap: &mut HashMap<String, Vec<String>>,
+    suffixmap: &mut HashMap<String, Vec<String>>,
+    altprefixmap: &mut HashMap<String, Vec<String>>
+) {
+    let (prefix, suffix, _double_vowel) = split_word(&word);
+    suffixmap
+        .entry(suffix.clone())
+        .or_insert(Vec::new())
+        .push(prefix.clone());
+
+    let altsuffix = altlookup(&suffix);
+    match altsuffix {
+        Some(altsuffix) => {
+            altprefixmap
+                .entry(prefix.clone())
+                .or_insert(Vec::new())
+                .push(altsuffix);
+        }
+        None => altprefixmap
+            .entry(prefix.clone())
+            .or_insert(Vec::new())
+            .push(suffix.clone()),
+    }
+    prefixmap.entry(prefix).or_insert(Vec::new()).push(suffix);
+}
+
 impl SpoonMaps {
+    pub fn from_text(filename: &str) -> SpoonMaps {
+        let mut prefixmap: HashMap<String, Vec<String>> = HashMap::new();
+        let mut suffixmap: HashMap<String, Vec<String>> = HashMap::new();
+        let mut altprefixmap: HashMap<String, Vec<String>> = HashMap::new();
+
+        let file = match File::open(filename) {
+            Err(why) => panic!("Could not open file {}", why),
+            Ok(file) => file,
+        };
+
+        let reader = BufReader::new(file);
+
+        for line in reader.lines() {
+            if let Ok(word) = line {
+                add_word_to_maps(&word, &mut prefixmap, &mut suffixmap, &mut altprefixmap);
+            }
+        }
+        SpoonMaps {
+            prefixmap: prefixmap,
+            suffixmap: suffixmap,
+            altprefixmap: altprefixmap,
+        }
+    }
+
     pub fn from_kotus_xml(filename: &str) -> SpoonMaps {
         let mut prefixmap: HashMap<String, Vec<String>> = HashMap::new();
         let mut suffixmap: HashMap<String, Vec<String>> = HashMap::new();
@@ -188,26 +241,7 @@ impl SpoonMaps {
                         continue;
                     }
                     if capture {
-                        let (prefix, suffix, _double_vowel) = split_word(&text);
-                        suffixmap
-                            .entry(suffix.clone())
-                            .or_insert(Vec::new())
-                            .push(prefix.clone());
-
-                        let altsuffix = altlookup(&suffix);
-                        match altsuffix {
-                            Some(altsuffix) => {
-                                altprefixmap
-                                    .entry(prefix.clone())
-                                    .or_insert(Vec::new())
-                                    .push(altsuffix);
-                            }
-                            None => altprefixmap
-                                .entry(prefix.clone())
-                                .or_insert(Vec::new())
-                                .push(suffix.clone()),
-                        }
-                        prefixmap.entry(prefix).or_insert(Vec::new()).push(suffix);
+                        add_word_to_maps(&text, &mut prefixmap, &mut suffixmap, &mut altprefixmap);
 
                         prev = hash(&text);
                     }
