@@ -91,8 +91,8 @@ async fn like(
         let new_input = input.clone();
         let timestamp = Utc::now().naive_utc();
         let new_like = LikeModel {
-            first: new_input.first,
-            second: new_input.second,
+            first: new_input.first.clone(),
+            second: new_input.second.clone(),
             cookie: session.0,
             timestamp: timestamp
         };
