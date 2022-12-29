@@ -11,7 +11,7 @@ array_tool = "1.0.3"
 clap = "3.2.6"
 serde = "1.0.137"
 rand = "0.8.5"
-chrono = { version = "0.4.9", features = ["serde"] }
+chrono = { version = "0.4.19", features = ["serde"] }
 diesel = { version = "1.4.8", features = ["postgres", "chrono"] }
 dotenv = "0.15.0"
 
