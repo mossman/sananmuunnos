@@ -5,7 +5,7 @@ WORKDIR /usr/src/sananmuunnos
 COPY . .
 RUN cargo install --path .
 
-FROM node:16 as buildjs
+FROM node:18 as buildjs
 WORKDIR /usr/src/sananmuunnos/sananmuunnos-js
 COPY sananmuunnos-js .
 RUN npm install; npm run build
