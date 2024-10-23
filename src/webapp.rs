@@ -86,7 +86,7 @@ async fn like(
 
     let valid = state.spoonmaps.check(&input.first, &input.second);
     if !valid {
-        Err(Conflict(Some("No such thing".to_string())))
+        Err(Conflict("No such thing".to_string()))
     } else {
         let new_input = input.clone();
         let timestamp = Utc::now().naive_utc();
@@ -104,10 +104,10 @@ async fn like(
 
         match inserted {
             Err(e) => {
-                Err(Conflict(Some(e.to_string())))
+                Err(Conflict(e.to_string()))
             },
             Ok(0) => {
-                Err(Conflict(Some("failed".to_string())))
+                Err(Conflict("failed".to_string()))
 
             },
             _ => Ok(Created::new("/").body(input))

@@ -4,7 +4,7 @@ use chrono::NaiveDateTime;
 use rocket::serde::Serialize;
 
 #[derive(Insertable, Queryable)]
-#[table_name = "likes"]
+#[diesel(table_name=likes)]
 pub struct LikeModel {
     pub first: String,
     pub second: String,
